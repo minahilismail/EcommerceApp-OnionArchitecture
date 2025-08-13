@@ -22,7 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Product\Validations\" />
+    <Folder Include="User\DTOs\" />
+    <Folder Include="User\Interfaces\" />
+    <Folder Include="User\Mappings\" />
+    <Folder Include="User\Validations\" />
+    <Folder Include="User\Service\" />
+    <Folder Include="User\Repository\" />
   </ItemGroup>
 
 </Project>
