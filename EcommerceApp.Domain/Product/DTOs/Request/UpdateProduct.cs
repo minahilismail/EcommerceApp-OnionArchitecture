@@ -27,5 +27,6 @@ namespace EcommerceApp.Domain.Product.DTOs.Request
 
         [Required]
         public int CategoryId { get; set; }
+
     }
 }
