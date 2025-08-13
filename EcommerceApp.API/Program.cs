@@ -2,6 +2,9 @@ using EcommerceApp.API.Endpoints;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Domain.Category.Repository;
 using EcommerceApp.Domain.Category.Service;
+using EcommerceApp.Domain.Product.Interfaces;
+using EcommerceApp.Domain.Product.Repository;
+using EcommerceApp.Domain.Product.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,10 @@ builder.Services.AddSwaggerGen();
 // Registering services
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IStorageService, StorageService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
 
 
 var app = builder.Build();
@@ -32,20 +39,7 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 CategoryEndpoints.MapCategoryEndpoints(app);
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+ProductEndpoints.MapProductEndpoints(app);
 
 app.Run();
 
