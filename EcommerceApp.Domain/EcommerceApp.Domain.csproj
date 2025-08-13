@@ -22,7 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="User\DTOs\" />
+    <Folder Include="User\DTOs\Response\" />
+    <Folder Include="User\DTOs\Request\" />
     <Folder Include="User\Interfaces\" />
     <Folder Include="User\Mappings\" />
     <Folder Include="User\Validations\" />
