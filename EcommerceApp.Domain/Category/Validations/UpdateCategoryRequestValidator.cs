@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EcommerceApp.Application.Interfaces.Services
+namespace EcommerceApp.Domain.Category.Validations
 {
-    public interface ICategoryService
+    internal class UpdateCategoryRequestValidator
     {
-
     }
 }

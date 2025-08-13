@@ -1,4 +1,4 @@
-﻿namespace EcommerceApp.Domain.Entities
+﻿namespace EcommerceApp.Model.Entities
 {
     public class AuditableEntity
     {

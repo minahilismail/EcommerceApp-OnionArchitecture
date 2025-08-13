@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EcommerceApp.Domain.Entities
+namespace EcommerceApp.Model.Entities
 {
-    public class Category : AuditableEntity
+    public class CategoryModel : AuditableEntity
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -17,10 +17,10 @@ namespace EcommerceApp.Domain.Entities
         public int? StatusId { get; set; } = 1;
 
         [ForeignKey("ParentCategoryId")]
-        public Category? ParentCategory { get; set; }
+        public CategoryModel? ParentCategory { get; set; }
         [ForeignKey("StatusId")]
-        public Status Status { get; set; }
+        public StatusModel Status { get; set; }
 
-        public ICollection<Category> SubCategories { get; set; } = new List<Category>();
+        public ICollection<CategoryModel> SubCategories { get; set; } = new List<CategoryModel>();
     }
 }

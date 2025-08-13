@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EcommerceApp.Domain.Entities
+namespace EcommerceApp.Model.Entities
 {
-    public class Product : AuditableEntity
+    public class ProductModel : AuditableEntity
     {
         public int Id { get; set; }
 
@@ -23,7 +23,7 @@ namespace EcommerceApp.Domain.Entities
         public int CategoryId { get; set; }
 
         [ForeignKey("CategoryId")]
-        public Category Category { get; set; }
+        public CategoryModel Category { get; set; }
 
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Data;
 
-namespace EcommerceApp.Domain.Entities
+namespace EcommerceApp.Model.Entities
 {
-    public class User : AuditableEntity
+    public class UserModel : AuditableEntity
     {
 
         public int Id { get; set; }

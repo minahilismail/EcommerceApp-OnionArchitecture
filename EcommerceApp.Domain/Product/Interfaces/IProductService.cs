@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EcommerceApp.Application.Interfaces.Services
+namespace EcommerceApp.Domain.Product.Interfaces
 {
-    public interface ICategoryService
+    public interface IProductService
     {
-
     }
 }

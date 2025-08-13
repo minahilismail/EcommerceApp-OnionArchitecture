@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceApp.Domain.Entities
+namespace EcommerceApp.Model.Entities
 {
-    public class Role : AuditableEntity
+    public class RoleModel : AuditableEntity
     {
         public int Id { get; set; }
 

@@ -1,4 +1,4 @@
-﻿namespace EcommerceApp.Domain.Entities
+﻿namespace EcommerceApp.Model.Entities
 {
     public class UserRole
     {
@@ -6,7 +6,7 @@
         public int RoleId { get; set; }
 
         
-        public User User { get; set; }
-        public Role Role { get; set; }
+        public UserModel User { get; set; }
+        public RoleModel Role { get; set; }
     }
 }
