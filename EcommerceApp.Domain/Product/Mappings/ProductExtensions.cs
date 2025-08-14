@@ -1,5 +1,6 @@
 ﻿using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.DTOs.Response;
+using EcommerceApp.Domain.User.DTOs.Response;
 using EcommerceApp.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ namespace EcommerceApp.Domain.Product.Mappings
                 
             };
         }
+
 
         public static IEnumerable<ProductResponse> ToDto(this IEnumerable<ProductModel> products)
         {

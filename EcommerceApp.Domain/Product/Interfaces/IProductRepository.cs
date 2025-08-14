@@ -1,5 +1,4 @@
-﻿using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+﻿using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Model.Entities;
 using System;

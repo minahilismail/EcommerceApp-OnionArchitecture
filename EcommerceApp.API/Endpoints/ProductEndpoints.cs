@@ -1,5 +1,4 @@
-﻿using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+﻿using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.DTOs.Response;
 using EcommerceApp.Domain.Product.Interfaces;
@@ -16,7 +15,7 @@ namespace EcommerceApp.API.Endpoints
                 .WithOpenApi();
 
             // GET /api/products
-                    group.MapGet("/", async (IProductService productService) =>
+            group.MapGet("/", async (IProductService productService) =>
             {
                 var products = await productService.GetAllAsync();
                 return Results.Ok(products);

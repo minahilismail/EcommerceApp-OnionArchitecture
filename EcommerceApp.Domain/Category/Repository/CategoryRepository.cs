@@ -1,6 +1,5 @@
 ﻿using Dapper;
-using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.DTOs.Response;
 using EcommerceApp.Domain.Category.Interfaces;
@@ -221,25 +220,6 @@ namespace EcommerceApp.Domain.Category.Repository
             const string sql = "DELETE FROM Categories WHERE Id = @Id";
 
             var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id });
-            return rowsAffected > 0;
-        }
-
-        public async Task<bool> UpdateStatusAsync(int id, int statusId)
-        {
-            using var connection = new SqlConnection(_connectionString);
-
-            const string sql = @"
-                UPDATE Categories 
-                SET StatusId = @StatusId, UpdatedDate = @UpdatedDate, UpdatedOn = @UpdatedOn
-                WHERE Id = @Id";
-
-            var rowsAffected = await connection.ExecuteAsync(sql, new
-            {
-                Id = id,
-                StatusId = statusId,
-                UpdatedDate = DateTime.UtcNow,
-                UpdatedOn = DateTime.UtcNow
-            });
             return rowsAffected > 0;
         }
 

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceApp.Application.DTOs.Request
+namespace EcommerceApp.Core.DTOs
 {
     public class PaginationParameters
     {

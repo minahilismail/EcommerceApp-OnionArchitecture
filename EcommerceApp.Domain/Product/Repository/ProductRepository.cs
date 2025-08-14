@@ -1,6 +1,5 @@
 ﻿using Dapper;
-using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.Interfaces;
 using EcommerceApp.Model.Entities;

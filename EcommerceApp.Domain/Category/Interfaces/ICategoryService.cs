@@ -1,5 +1,5 @@
-﻿using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+﻿
+using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.DTOs.Response;
 using System;

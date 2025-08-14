@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace EcommerceApp.Application.DTOs.Response
+namespace EcommerceApp.Core.DTOs
 {
     public class PagedResult<T>
     {

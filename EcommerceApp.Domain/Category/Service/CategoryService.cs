@@ -1,6 +1,5 @@
 ﻿
-using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.DTOs.Response;
 using EcommerceApp.Domain.Category.Interfaces;
@@ -63,25 +62,25 @@ namespace EcommerceApp.Domain.Category.Service
         public async Task<IEnumerable<CategoryResponse>> GetAllAsync()
         {
             var categories = await _categoryRepository.GetAllAsync();
-            return categories.Select(Mappings.CategoryExtension.ToDto);
+            return categories.Select(CategoryExtension.ToDto);
         }
 
         public async Task<CategoryResponse?> GetByIdAsync(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            return category != null ? Mappings.CategoryExtension.ToDto(category) : null;
+            return category != null ? CategoryExtension.ToDto(category) : null;
         }
 
         public async Task<IEnumerable<CategoryResponse>> GetByStatusIdAsync(int statusId)
         {
             var categories = await _categoryRepository.GetByStatusIdAsync(statusId);
-            return categories.Select(Mappings.CategoryExtension.ToDto);
+            return categories.Select(CategoryExtension.ToDto);
         }
 
         public async Task<IEnumerable<CategoryResponse>> GetRootCategoriesAsync()
         {
             var categories = await _categoryRepository.GetRootCategoriesAsync();
-            return categories.Select(Mappings.CategoryExtension.ToDto);
+            return categories.Select(CategoryExtension.ToDto);
         }
 
         public async Task<PagedResult<CategoryResponse>> GetPagedAsync(PaginationParameters parameters, int? statusId = null)

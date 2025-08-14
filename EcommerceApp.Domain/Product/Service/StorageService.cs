@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EcommerceApp.Domain.Product.Repository
+namespace EcommerceApp.Domain.Product.Service
 {
     public class StorageService : IStorageService
     {
@@ -20,7 +20,7 @@ namespace EcommerceApp.Domain.Product.Repository
             string connectionString = _configuration["AzureStorage:ConnectionString"];
             _blobServiceClient = new BlobServiceClient(connectionString);
             _containerName = _configuration["AzureStorage:ContainerName"];
-            this._configuration = configuration;
+            _configuration = configuration;
         }
 
         public async Task<string> UploadAsync(byte[] fileData, string fileName, string containerName)

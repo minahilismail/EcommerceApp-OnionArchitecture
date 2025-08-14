@@ -5,6 +5,9 @@ using EcommerceApp.Domain.Category.Service;
 using EcommerceApp.Domain.Product.Interfaces;
 using EcommerceApp.Domain.Product.Repository;
 using EcommerceApp.Domain.Product.Service;
+using EcommerceApp.Domain.User.Interfaces;
+using EcommerceApp.Domain.User.Repository;
+using EcommerceApp.Domain.User.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +23,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IStorageService, StorageService>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
 
@@ -40,7 +45,7 @@ var summaries = new[]
 };
 CategoryEndpoints.MapCategoryEndpoints(app);
 ProductEndpoints.MapProductEndpoints(app);
-
+UserEndpoints.MapUserEndpoints(app);
 app.Run();
 
 internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

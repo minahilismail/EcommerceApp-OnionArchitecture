@@ -1,4 +1,5 @@
-﻿using EcommerceApp.Application.DTOs.Response;
+﻿
+using EcommerceApp.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

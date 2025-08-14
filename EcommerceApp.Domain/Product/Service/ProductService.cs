@@ -1,5 +1,4 @@
-﻿using EcommerceApp.Application.DTOs.Request;
-using EcommerceApp.Application.DTOs.Response;
+﻿using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.DTOs.Response;
 using EcommerceApp.Domain.Product.Interfaces;
@@ -37,7 +36,6 @@ namespace EcommerceApp.Domain.Product.Service
         public async Task<IEnumerable<ProductResponse>> GetAllAsync()
         {
             var productData = await _productRepository.GetAllAsync();
-            // Remove .ToEntity() since productData is already IEnumerable<ProductModel>
             return productData.ToDto();
         }
 
@@ -59,7 +57,6 @@ namespace EcommerceApp.Domain.Product.Service
         public async Task<PagedResult<ProductResponse>> GetPagedAsync(PaginationParameters parameters, ProductFilter? filter = null)
         {
             var pagedData = await _productRepository.GetPagedAsync(parameters, filter);
-            // Remove .ToEntity() since pagedData.Data is already IEnumerable<ProductModel>
             var productDtos = pagedData.Data.ToDto().ToList();
 
             return new PagedResult<ProductResponse>(productDtos, pagedData.TotalRecords, parameters.PageNumber, parameters.PageSize);
