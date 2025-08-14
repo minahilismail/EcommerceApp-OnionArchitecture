@@ -1,6 +1,7 @@
 ﻿using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.Interfaces;
+using EcommerceApp.Domain.User.DTOs.Request;
 using EcommerceApp.Domain.User.Interfaces;
 
 namespace EcommerceApp.API.Endpoints
@@ -18,7 +19,17 @@ namespace EcommerceApp.API.Endpoints
                 return Results.Ok(roles);
             }).WithSummary("Get all roles");
             
-
+            group.MapGet("/", async (IUserService userService) =>
+            {
+                var users = await userService.GetUsersAsync();
+                return Results.Ok(users);
+            }).WithSummary("Get all users");
+            group.MapPut("/update-role", async (IUserService userService, UpdateUserRoles updateUserRoles) =>
+            {
+                var result = await userService.UpdateUserRole(updateUserRoles);
+                
+                return Results.Ok();
+            }).WithSummary("Update user roles");
         }
     }
 }

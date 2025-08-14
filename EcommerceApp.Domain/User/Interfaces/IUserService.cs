@@ -11,7 +11,7 @@ namespace EcommerceApp.Domain.User.Interfaces
     public interface IUserService
     {
         public Task<IEnumerable<UserResponse>> GetUsersAsync();
-        public Task<UserResponse> UpdateUserRole(UpdateUserRoles updateUserRoles);
+        public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles);
         public Task<IEnumerable<UserRoleDto>> GetRoles();
     }
 }

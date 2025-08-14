@@ -25,14 +25,20 @@ namespace EcommerceApp.Domain.User.Service
             return roles.ToRoleDto();
         }
 
-        public Task<IEnumerable<UserResponse>> GetUsersAsync()
+        public async Task<IEnumerable<UserResponse>> GetUsersAsync()
         {
-            throw new NotImplementedException();
+            var users = await _userRepository.GetUsersAsync();
+            return users.ToDto();
         }
 
-        public Task<UserResponse> UpdateUserRole(UpdateUserRoles updateUserRoles)
+        public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles)
         {
-            throw new NotImplementedException();
+            if (updateUserRoles == null || updateUserRoles.Id <= 0 || updateUserRoles.RoleIds == null || !updateUserRoles.RoleIds.Any())
+            {
+                throw new ArgumentException("Invalid user role update request.");
+            }
+            return _userRepository.UpdateUserRole(updateUserRoles);
+
         }
     }
 }

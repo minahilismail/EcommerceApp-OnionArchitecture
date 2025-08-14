@@ -33,14 +33,29 @@ namespace EcommerceApp.Domain.User.Repository
             return await connection.QueryAsync<RoleModel>(sql);
         }
 
-        public Task<UserResponse> UpdateUserRole(UpdateUserRoles updateUserRoles)
+        public async Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles)
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = @"
+                UPDATE [User]
+                SET UserRoles = @RoleIds
+                WHERE Id = @Id";
+            var rowsAffected = await connection.ExecuteAsync(sql, new { RoleIds = updateUserRoles.RoleIds, Id = updateUserRoles.Id });
+            return rowsAffected > 0;
+            
         }
 
-        Task<IEnumerable<UserResponse>> IUserRepository.GetUsersAsync()
+        public async Task<IEnumerable<UserModel>> GetUsersAsync()
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = @"
+                SELECT u.Id, u.Name, u.Email, u.UserRoles, r.Name as RoleName
+                FROM [User] u
+                LEFT JOIN UserRole ur ON u.Id = ur.UserId
+                LEFT JOIN Role r ON ur.RoleId = r.Id
+                ORDER BY u.Id";
+
+            return await connection.QueryAsync<UserModel>(sql);
         }
     }
 }
