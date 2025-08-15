@@ -1,8 +1,10 @@
 ﻿using EcommerceApp.Core.DTOs;
+using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.DTOs.Response;
 using EcommerceApp.Domain.Product.Interfaces;
 using EcommerceApp.Domain.Product.Mappings;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -20,15 +22,19 @@ namespace EcommerceApp.Domain.Product.Service
         
         private readonly IStorageService _storageService;
         private readonly IConfiguration _configuration;
-
+        private readonly IValidator<UpdateProduct> _updateProductValidator;
+        private readonly IValidator<CreateProduct> _createProductValidator;
         public ProductService(
             IProductRepository productRepository,
             
             IStorageService storageService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IValidator<CreateProduct> createProductValidator,
+            IValidator<UpdateProduct> updateProductValidator)
         {
             _productRepository = productRepository;
-           
+           _createProductValidator = createProductValidator;
+            _updateProductValidator = updateProductValidator;
             _storageService = storageService;
             _configuration = configuration;
         }
@@ -64,12 +70,14 @@ namespace EcommerceApp.Domain.Product.Service
 
         public async Task<ProductResponse> CreateAsync(CreateProduct createDto)
         {
-            // Validate
-            //var validationResult = await _createValidator.ValidateAsync(createDto);
-            //if (!validationResult.IsValid)
-            //{
-            //    throw new ValidationException(validationResult.Errors);
-            //}
+            //Validate
+           var validationResult = await _createProductValidator.ValidateAsync(createDto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
+            }
+            
 
             var product = createDto.ToEntity();
 
@@ -87,19 +95,13 @@ namespace EcommerceApp.Domain.Product.Service
 
         public async Task<bool> UpdateAsync(int id, UpdateProduct updateDto)
         {
-            // Basic validation
-            //var validationResult = await _updateValidator.ValidateAsync(updateDto);
-            //if (!validationResult.IsValid)
-            //{
-            //    throw new ValidationException(validationResult.Errors);
-            //}
-
-            //// Additional validation for update
-            //var isValidForUpdate = await _updateValidator.ValidateForUpdateAsync(id, updateDto);
-            //if (!isValidForUpdate)
-            //{
-            //    throw new ValidationException("Product validation failed for update.");
-            //}
+            // Validate
+            var validationResult = await _updateProductValidator.ValidateAsync(updateDto);
+            if (!validationResult.IsValid)
+                {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
+            }
 
             var existingData = await _productRepository.GetByIdAsync(id);
             if (existingData == null) return false;

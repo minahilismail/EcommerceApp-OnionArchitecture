@@ -202,5 +202,13 @@ namespace EcommerceApp.Domain.Product.Repository
             });
             return rowsAffected > 0;
         }
+
+        public async Task<bool> ExistsByIdAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT COUNT(1) FROM Products WHERE Id = @Id";
+            var count = await connection.QuerySingleAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
     }
 }

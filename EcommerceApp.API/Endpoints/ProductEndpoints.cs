@@ -75,13 +75,48 @@ namespace EcommerceApp.API.Endpoints
             .WithSummary("Get products by category")
             .Produces<IEnumerable<ProductResponse>>();
 
-            // POST /api/products (without image - same pattern as categories)
-            group.MapPost("/", async (CreateProduct createDto, IProductService productService) =>
+            // POST /api/products (with form data support for images)
+            group.MapPost("/", async (HttpRequest request, IProductService productService) =>
             {
                 try
                 {
+                    var form = await request.ReadFormAsync();
+
+                    //// Check if required fields exist
+                    //if (!form.ContainsKey("title") || string.IsNullOrEmpty(form["title"]))
+                    //    return Results.BadRequest("Title is required");
+
+                    //if (!form.ContainsKey("price") || string.IsNullOrEmpty(form["price"]))
+                    //    return Results.BadRequest("Price is required");
+
+                    //if (!form.ContainsKey("description") || string.IsNullOrEmpty(form["description"]))
+                    //    return Results.BadRequest("Description is required");
+
+                    //if (!form.ContainsKey("categoryId") || string.IsNullOrEmpty(form["categoryId"]))
+                    //    return Results.BadRequest("CategoryId is required");
+
+                    // Parse form data with error handling
+                    if (!double.TryParse(form["price"], out double price))
+                        return Results.BadRequest("Invalid price format");
+
+                    if (!int.TryParse(form["categoryId"], out int categoryId))
+                        return Results.BadRequest("Invalid categoryId format");
+
+                    var createDto = new CreateProduct
+                    {
+                        Title = form["title"]!,
+                        Price = price,
+                        Description = form["description"]!,
+                        CategoryId = categoryId,
+                        Image = form.Files.GetFile("image")
+                    };
+
                     var product = await productService.CreateAsync(createDto);
                     return Results.Created($"/api/products/{product.Id}", product);
+                }
+                catch (FormatException ex)
+                {
+                    return Results.BadRequest($"Invalid data format: {ex.Message}");
                 }
                 catch (ValidationException ex)
                 {
@@ -89,13 +124,14 @@ namespace EcommerceApp.API.Endpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return Results.BadRequest($"Error processing request: {ex.Message}");
                 }
             })
             .WithName("CreateProduct")
             .WithSummary("Create a new product")
             .Produces<ProductResponse>(201)
-            .Produces(400);
+            .Produces(400)
+            .DisableAntiforgery();
 
             // PUT /api/products/{id} (with form data support for images)
             group.MapPut("/{id:int}", async (int id, HttpRequest request, IProductService productService) =>

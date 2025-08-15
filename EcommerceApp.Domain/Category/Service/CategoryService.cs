@@ -5,6 +5,7 @@ using EcommerceApp.Domain.Category.DTOs.Response;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Domain.Category.Mappings;
 using EcommerceApp.Model.Entities;
+using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,29 +17,24 @@ namespace EcommerceApp.Domain.Category.Service
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
-        public CategoryService(ICategoryRepository categoryRepository)
+        private readonly IValidator<UpdateCategory> _updateCategoryValidator;
+        private readonly IValidator<AddCategory> _addCategoryValidator;
+
+        public CategoryService(ICategoryRepository categoryRepository, IValidator<UpdateCategory> updateCategoryValidator, IValidator<AddCategory> addCategoryValidator)
         {
             _categoryRepository = categoryRepository;
+            _updateCategoryValidator = updateCategoryValidator;
+            _addCategoryValidator = addCategoryValidator;
         }
         public async Task<CategoryResponse> CreateAsync(AddCategory createDto)
         {
-            // Validate parent category exists if provided
-            if (createDto.ParentCategoryId.HasValue)
+            // Validate the DTO using FluentValidation
+            var validationResult = await _addCategoryValidator.ValidateAsync(createDto);
+            if (!validationResult.IsValid)
             {
-                var parentExists = await _categoryRepository.ExistsAsync(createDto.ParentCategoryId.Value);
-                if (!parentExists)
-                    throw new ArgumentException("Parent category does not exist.");
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
             }
-
-            // Check for duplicate name
-            var nameExists = await _categoryRepository.ExistsByNameAsync(createDto.Name);
-            if (nameExists)
-                throw new ArgumentException("Category with this name already exists.");
-
-            // Check for duplicate code
-            var codeExists = await _categoryRepository.ExistsByCodeAsync(createDto.Code);
-            if (codeExists)
-                throw new ArgumentException("Category with this code already exists.");
 
             var category = CategoryExtension.ToEntity(createDto);
 
@@ -95,22 +91,17 @@ namespace EcommerceApp.Domain.Category.Service
 
         public async Task<bool> UpdateAsync(int id, UpdateCategory updateDto)
         {
+            // Validate the DTO using FluentValidation
+            var validationResult = await _updateCategoryValidator.ValidateAsync(updateDto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
+            }
             var existingCategory = await _categoryRepository.GetByIdAsync(id);
             if (existingCategory == null)
                 return false;
-
             
-
-            // Check for duplicate name (excluding current category)
-            var nameExists = await _categoryRepository.ExistsByNameAsync(updateDto.Name, id);
-            if (nameExists)
-                throw new ArgumentException("Category with this name already exists.");
-
-            // Check for duplicate code (excluding current category)
-            var codeExists = await _categoryRepository.ExistsByCodeAsync(updateDto.Code, id);
-            if (codeExists)
-                throw new ArgumentException("Category with this code already exists.");
-
             existingCategory.UpdateFromDto(updateDto);
             return await _categoryRepository.UpdateAsync(existingCategory);
         }

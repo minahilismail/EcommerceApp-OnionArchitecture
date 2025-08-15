@@ -3,6 +3,7 @@ using EcommerceApp.Domain.User.DTOs.Request;
 using EcommerceApp.Domain.User.DTOs.Response;
 using EcommerceApp.Domain.User.Interfaces;
 using EcommerceApp.Model.Entities;
+using Microsoft.AspNet.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -10,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EcommerceApp.Domain.User.Repository
 {
@@ -120,43 +122,6 @@ namespace EcommerceApp.Domain.User.Repository
 
             try
             {
-                // Check if user exists
-                const string checkUserSql = "SELECT COUNT(*) FROM [Users] WHERE Id = @Id";
-                var userExists = await connection.QuerySingleAsync<int>(checkUserSql, new { Id = id }, transaction);
-
-                if (userExists == 0)
-                {
-                    return false;
-                }
-
-                // Check for duplicate email or username (excluding current user)
-                const string duplicateCheckSql = @"
-                    SELECT COUNT(*) FROM [Users] 
-                    WHERE Id != @Id AND (LOWER(Email) = LOWER(@Email) OR LOWER(Username) = LOWER(@Username))";
-
-                var duplicateCount = await connection.QuerySingleAsync<int>(duplicateCheckSql,
-                    new { Id = id, Email = user.Email, Username = user.Username }, transaction);
-
-                if (duplicateCount > 0)
-                {
-                    throw new InvalidOperationException("User with the same email or username already exists!");
-                }
-
-                // Validate role IDs if provided
-                if (user.RoleIds != null && user.RoleIds.Length > 0)
-                {
-                    const string validateRolesSql = @"
-                        SELECT COUNT(*) FROM Roles WHERE Id IN @RoleIds";
-
-                    var validRoleCount = await connection.QuerySingleAsync<int>(validateRolesSql,
-                        new { RoleIds = user.RoleIds }, transaction);
-
-                    if (validRoleCount != user.RoleIds.Length)
-                    {
-                        throw new InvalidOperationException("Some provided role IDs are invalid.");
-                    }
-                }
-
                 // Update user basic information
                 const string updateUserSql = @"
                     UPDATE [Users] 
@@ -216,6 +181,50 @@ namespace EcommerceApp.Domain.User.Repository
                 transaction.Rollback();
                 throw;
             }
+        }
+
+        public async Task<bool> UserExistsById(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT COUNT(1) FROM [Users] WHERE Id = @Id";
+            var count = await connection.QuerySingleAsync<int>(sql, new { Id = id });
+            return count > 0;
+        }
+
+        public async Task<bool> UserExistsByEmail(string email, int? currentUserId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT COUNT(1) FROM [Users] WHERE LOWER(Email) = LOWER(@Email) AND Id != @CurrentUserId";
+            var count = await connection.QuerySingleAsync<int>(sql, new { Email = email, CurrentUserId = currentUserId });
+            return count > 0;
+        }
+
+        public async Task<bool> UserExistsByUsername(string username, int? currentUserId)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT COUNT(1) FROM [Users] WHERE LOWER(Username) = LOWER(@Username) AND Id != @CurrentUserId";
+            var count = await connection.QuerySingleAsync<int>(sql, new { Username = username, CurrentUserId = currentUserId });
+            return count > 0;
+        }
+
+        public async Task<bool> RolesExistAsync(int[] roleIds)
+        {
+            // Validate role IDs if provided
+            if (roleIds != null && roleIds.Length > 0)
+            {
+                const string validateRolesSql = @"
+                        SELECT COUNT(*) FROM Roles WHERE Id IN @RoleIds";
+
+                using var connection = new SqlConnection(_connectionString);
+                await connection.OpenAsync();
+
+                //checking if user provided role ids actually exist in the database
+                var count = await connection.ExecuteScalarAsync<int>(validateRolesSql, new { RoleIds = roleIds });
+
+                return count == roleIds.Length;
+            }
+
+            return true;
         }
     }
     

@@ -25,7 +25,5 @@ namespace EcommerceApp.Domain.Product.DTOs.Response
 
         [Required]
         public int CategoryId { get; set; }
-
-        public string? CategoryName { get; set; }
     }
 }

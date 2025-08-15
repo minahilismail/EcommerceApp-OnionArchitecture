@@ -17,6 +17,7 @@ namespace EcommerceApp.Domain.Category.DTOs.Request
         public string Code { get; set; }
         public string Description { get; set; }
         public int? StatusId { get; set; }
+        public int? ParentCategoryId { get; set; }
 
     }
 }

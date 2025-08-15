@@ -15,5 +15,10 @@ namespace EcommerceApp.Domain.User.Interfaces
         public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles);
         public Task<IEnumerable<RoleModel>> GetRoles();
         public Task<bool> UpdateUser(int id, UpdateUser user);
+        public Task<bool> UserExistsById(int id);
+        public Task<bool> UserExistsByEmail(string email, int? id);
+        public Task<bool> UserExistsByUsername(string username, int? id);
+        public Task<bool> RolesExistAsync(int[] roleIds);
+
     }
 }

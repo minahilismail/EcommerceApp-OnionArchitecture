@@ -16,6 +16,7 @@ namespace EcommerceApp.Domain.Product.Interfaces
         Task<IEnumerable<ProductModel>> GetByCategoryAsync(int categoryId);
         Task<PagedResult<ProductModel>> GetPagedAsync(PaginationParameters parameters, ProductFilter? filter = null);
         Task<bool> ExistsByTitleAsync(string title, int? excludeId = null);
+        Task<bool> ExistsByIdAsync(int id);
         Task<bool> CategoryExistsAsync(int categoryId);
         Task<int> CreateAsync(ProductModel product);
         Task<bool> UpdateAsync(ProductModel product);

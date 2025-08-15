@@ -23,7 +23,6 @@ namespace EcommerceApp.Domain.Product.Mappings
                 Description = product.Description,
                 Image = product.Image,
                 CategoryId = product.CategoryId,
-                CategoryName = product.Category?.Name,
                 
             };
         }
