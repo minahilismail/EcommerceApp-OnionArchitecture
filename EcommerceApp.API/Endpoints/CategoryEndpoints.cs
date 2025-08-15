@@ -55,6 +55,11 @@ namespace EcommerceApp.API.Endpoints
                 var pagedCategories = await categoryService.GetPagedAsync(paginationParameters, statusId);
                 return Results.Ok(pagedCategories);
             }).WithSummary("Get Paged Categories");
+            group.MapGet("/statuses", async (ICategoryService categoryService) =>
+            {
+                var statuses = await categoryService.GetStatuses();
+                return Results.Ok(statuses);
+            }).WithSummary("Get Category Statuses");
 
         }
     }

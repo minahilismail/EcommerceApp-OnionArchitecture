@@ -23,7 +23,8 @@ namespace EcommerceApp.Domain.User.Mappings
                Username = user.Username,
                Email = user.Email,
                IsActive = user.IsActive,
-               UserRoles = user.UserRoles
+               Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
+
 
             };
         }

@@ -1,5 +1,6 @@
 ﻿using EcommerceApp.Domain.Auth.DTOs.Request;
 using EcommerceApp.Domain.Auth.DTOs.Response;
+using EcommerceApp.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace EcommerceApp.Domain.Auth.Interfaces
 {
     public interface IAuthRepository
     {
-        public Task<LoginResponse> LoginAsync(LoginRequest loginRequest);
-        public Task<SignupResponse> SignUpAsync(SignupRequest signupRequest);
+        public Task<UserModel?> GetUserByEmailAsync(string email);
+        public Task<int> CreateUserAsync(UserModel user);
+        public Task<bool> UserExistsAsync(string email, string username);
+        public Task<bool> AssignDefaultRoleAsync(int userId);
     }
 }

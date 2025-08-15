@@ -28,7 +28,7 @@ namespace EcommerceApp.Domain.User.DTOs.Response
        
         public bool IsActive { get; set; } = true;
 
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public ICollection<string> Roles { get; set; } = new List<string>();
 
     }
 }

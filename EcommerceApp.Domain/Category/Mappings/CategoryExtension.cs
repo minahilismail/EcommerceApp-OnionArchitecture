@@ -23,7 +23,7 @@ namespace EcommerceApp.Domain.Category.Mappings
                 Level = category.Level,
                 ParentCategoryId = category.ParentCategoryId,
                 StatusId = category.StatusId,
-                ParentCategoryName = category.ParentCategory?.Name,
+                
                 SubCategories = category.SubCategories?.Select(sub => new CategoryResponse
                 {
                     Id = sub.Id,
@@ -33,7 +33,7 @@ namespace EcommerceApp.Domain.Category.Mappings
                     Level = sub.Level,
                     ParentCategoryId = sub.ParentCategoryId,
                     StatusId = sub.StatusId,
-                    ParentCategoryName = sub.ParentCategory?.Name
+                    
                 }).ToList() ?? new List<CategoryResponse>(),
             };
         }
@@ -75,5 +75,17 @@ namespace EcommerceApp.Domain.Category.Mappings
             entity.StatusId = dto.StatusId;
             entity.UpdatedDate = DateTime.UtcNow;
         }
+
+        public static CategoryStatusesDto ToDto(this StatusModel status)
+        {
+            return new CategoryStatusesDto
+            {
+                Id = status.Id,
+                Name = status.Name
+            };
+        }
+
+              
+
     }
 }

@@ -19,7 +19,6 @@ namespace EcommerceApp.Domain.Category.DTOs.Response
         public int Level { get; set; }
         public int? ParentCategoryId { get; set; }
         public int? StatusId { get; set; }
-        public string? ParentCategoryName { get; set; }
         public List<CategoryResponse>? SubCategories { get; set; }
     }
 }

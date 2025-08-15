@@ -22,8 +22,7 @@ namespace EcommerceApp.Domain.User.DTOs.Request
         [MaxLength(100)]
         [EmailAddress]
         public string Email { get; set; }
-
         public bool IsActive { get; set; } = true;
-        public string[]? Roles { get; set; }
+        public int[]? RoleIds { get; set; }
     }
 }

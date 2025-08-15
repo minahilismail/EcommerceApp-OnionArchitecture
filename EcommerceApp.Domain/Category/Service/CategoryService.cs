@@ -4,6 +4,7 @@ using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.DTOs.Response;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Domain.Category.Mappings;
+using EcommerceApp.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,6 +123,11 @@ namespace EcommerceApp.Domain.Category.Service
         public async Task<bool> UpdateStatusAsync(int id, int statusId)
         {
             return await _categoryRepository.UpdateCategoryStatusAsync(id, statusId);
+        }
+
+        public async Task<IEnumerable<CategoryStatusesDto>> GetStatuses()
+        {
+            return (await _categoryRepository.GetStatuses()).Select(CategoryExtension.ToDto);
         }
     }
 }

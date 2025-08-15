@@ -19,6 +19,7 @@ namespace EcommerceApp.Domain.Category.Interfaces
         Task<IEnumerable<CategoryModel>> GetRootCategoriesAsync();
         Task<PagedResult<CategoryModel>> GetPagedAsync(PaginationParameters parameters, int? statusId = null);
 
+        Task<IEnumerable<StatusModel>> GetStatuses();
         Task<int> CreateAsync(CategoryModel category);
         Task<bool> UpdateAsync(CategoryModel category);
         Task<bool> DeleteAsync(int id);

@@ -31,6 +31,11 @@ namespace EcommerceApp.Domain.User.Service
             return users.ToDto();
         }
 
+        public async Task<bool> UpdateUser(int id, UpdateUser updateUserRequest)
+        {
+            return await _userRepository.UpdateUser(id, updateUserRequest);
+        }
+
         public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles)
         {
             if (updateUserRoles == null || updateUserRoles.Id <= 0 || updateUserRoles.RoleIds == null || !updateUserRoles.RoleIds.Any())

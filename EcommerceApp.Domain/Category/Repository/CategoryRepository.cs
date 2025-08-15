@@ -22,6 +22,7 @@ namespace EcommerceApp.Domain.Category.Repository
         {
             _connectionString = configuration.GetConnectionString("DefaultSQLConnection")!;
         }
+
         public async Task<int> CreateAsync(CategoryModel category)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -33,6 +34,7 @@ namespace EcommerceApp.Domain.Category.Repository
 
             return await connection.QuerySingleAsync<int>(sql, category);
         }
+
         public async Task<IEnumerable<CategoryModel>> GetAllAsync()
         {
             using var connection = new SqlConnection(_connectionString);
@@ -40,25 +42,11 @@ namespace EcommerceApp.Domain.Category.Repository
             const string sql = @"
                 SELECT c.*, p.Name as ParentCategoryName
                 FROM Categories c
-                LEFT JOIN Categories p ON c.ParentCategoryId = p.Id
-                ORDER BY c.Level, c.Name";
+                LEFT JOIN Categories p ON c.ParentCategoryId = p.Id";
 
             var categories = await connection.QueryAsync<CategoryModel>(sql);
             
-            // Build the hierarchy
-            var categoryList = categories.ToList();
-            var categoryDict = categoryList.ToDictionary(c => c.Id);
-            
-            foreach (var category in categoryList)
-            {
-                if (category.ParentCategoryId.HasValue && categoryDict.ContainsKey(category.ParentCategoryId.Value))
-                {
-                    var parent = categoryDict[category.ParentCategoryId.Value];
-                    parent.SubCategories.Add(category);
-                }
-            }
-            
-            return categoryList;
+            return BuildHierarchy(categories);
         }
 
         public async Task<CategoryModel?> GetByIdAsync(int id)
@@ -91,10 +79,11 @@ namespace EcommerceApp.Domain.Category.Repository
                 SELECT c.*, p.Name as ParentCategoryName
                 FROM Categories c
                 LEFT JOIN Categories p ON c.ParentCategoryId = p.Id
-                WHERE c.StatusId = @StatusId
-                ORDER BY c.Level, c.Name";
+                WHERE c.StatusId = @StatusId";
 
-            return await connection.QueryAsync<CategoryModel>(sql, new { StatusId = statusId });
+            var categories = await connection.QueryAsync<CategoryModel>(sql, new { StatusId = statusId });
+            
+            return BuildHierarchy(categories);
         }
 
         public async Task<IEnumerable<CategoryModel>> GetRootCategoriesAsync()
@@ -103,8 +92,7 @@ namespace EcommerceApp.Domain.Category.Repository
 
             const string sql = @"
                 SELECT * FROM Categories 
-                WHERE ParentCategoryId IS NULL 
-                ORDER BY Id";
+                WHERE ParentCategoryId IS NULL";
 
             return await connection.QueryAsync<CategoryModel>(sql);
         }
@@ -131,23 +119,23 @@ namespace EcommerceApp.Domain.Category.Repository
 
             var totalRecords = await connection.QuerySingleAsync<int>(countSql, queryParams);
 
-            // Data query
-            var offset = (parameters.PageNumber - 1) * parameters.PageSize;
-            queryParams.Add("Offset", offset);
-            queryParams.Add("PageSize", parameters.PageSize);
-
-            var dataSql = $@"
+            var allCategoriesSql = $@"
                 SELECT c.*, p.Name as ParentCategoryName
                 FROM Categories c
                 LEFT JOIN Categories p ON c.ParentCategoryId = p.Id
-                {whereClause}
-                ORDER BY c.Level, c.Name
-                OFFSET @Offset ROWS
-                FETCH NEXT @PageSize ROWS ONLY";
+                {whereClause}";
 
-            var data = await connection.QueryAsync<CategoryModel>(dataSql, queryParams);
+            var allCategories = await connection.QueryAsync<CategoryModel>(allCategoriesSql, queryParams);
+            var hierarchicalCategories = BuildHierarchy(allCategories).ToList();
 
-            return new PagedResult<CategoryModel>(data.ToList(), totalRecords, parameters.PageNumber, parameters.PageSize);
+            // Apply paging to the hierarchical result
+            var offset = (parameters.PageNumber - 1) * parameters.PageSize;
+            var pagedCategories = hierarchicalCategories
+                .Skip(offset)
+                .Take(parameters.PageSize)
+                .ToList();
+
+            return new PagedResult<CategoryModel>(pagedCategories, totalRecords, parameters.PageNumber, parameters.PageSize);
         }
 
         public async Task<bool> ExistsAsync(int id)
@@ -196,8 +184,6 @@ namespace EcommerceApp.Domain.Category.Repository
             return count > 0;
         }
 
-      
-
         public async Task<bool> UpdateAsync(CategoryModel category)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -242,6 +228,37 @@ namespace EcommerceApp.Domain.Category.Repository
             return rowsAffected > 0;
         }
 
+        public async Task<IEnumerable<StatusModel>> GetStatuses()
+        {
+            using var connection = new SqlConnection(_connectionString);
 
+            const string sql = "SELECT * FROM Status ORDER BY Id";
+            return await connection.QueryAsync<StatusModel>(sql);
+        }
+
+        // Helper method to build hierarchical structure
+        private IEnumerable<CategoryModel> BuildHierarchy(IEnumerable<CategoryModel> categories)
+        {
+            var categoryList = categories.ToList();
+            var categoryDict = categoryList.ToDictionary(c => c.Id);
+            
+            // Initialize SubCategories collection for all categories
+            foreach (var category in categoryList)
+            {
+                category.SubCategories = new List<CategoryModel>();
+            }
+            
+            // Build parent-child relationships
+            foreach (var category in categoryList)
+            {
+                if (category.ParentCategoryId.HasValue && categoryDict.ContainsKey(category.ParentCategoryId.Value))
+                {
+                    var parent = categoryDict[category.ParentCategoryId.Value];
+                    parent.SubCategories.Add(category);
+                }
+            }
+            
+            return categoryList;
+        }
     }
 }

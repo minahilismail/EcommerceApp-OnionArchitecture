@@ -97,16 +97,53 @@ namespace EcommerceApp.API.Endpoints
             .Produces<ProductResponse>(201)
             .Produces(400);
 
-            // PUT /api/products/{id} (without image - same pattern as categories)
-            group.MapPut("/{id:int}", async (int id, UpdateProduct updateDto, IProductService productService) =>
+            // PUT /api/products/{id} (with form data support for images)
+            group.MapPut("/{id:int}", async (int id, HttpRequest request, IProductService productService) =>
             {
                 if (id <= 0)
                     return Results.BadRequest("Product ID must be greater than 0.");
 
                 try
                 {
+                    var form = await request.ReadFormAsync();
+                    var formKeys = string.Join(", ", form.Keys);
+
+                    // Check if required fields exist
+                    if (!form.ContainsKey("title") || string.IsNullOrEmpty(form["title"]))
+                        return Results.BadRequest("Title is required");
+
+                    if (!form.ContainsKey("price") || string.IsNullOrEmpty(form["price"]))
+                        return Results.BadRequest("Price is required");
+
+                    if (!form.ContainsKey("description") || string.IsNullOrEmpty(form["description"]))
+                        return Results.BadRequest("Description is required");
+
+                    if (!form.ContainsKey("categoryId") || string.IsNullOrEmpty(form["categoryId"]))
+                        return Results.BadRequest("CategoryId is required");
+
+                    // Parse form data with error handling
+                    if (!double.TryParse(form["price"], out double price))
+                        return Results.BadRequest("Invalid price format");
+
+                    if (!int.TryParse(form["categoryId"], out int categoryId))
+                        return Results.BadRequest("Invalid categoryId format");
+
+                    var updateDto = new UpdateProduct
+                    {
+                        Id = id, 
+                        Title = form["title"]!,
+                        Price = price,
+                        Description = form["description"]!,
+                        CategoryId = categoryId,
+                        Image = form.Files.GetFile("image") 
+                    };
+
                     var success = await productService.UpdateAsync(id, updateDto);
                     return success ? Results.NoContent() : Results.NotFound($"Product with ID {id} not found.");
+                }
+                catch (FormatException ex)
+                {
+                    return Results.BadRequest($"Invalid data format: {ex.Message}");
                 }
                 catch (ValidationException ex)
                 {
@@ -114,14 +151,15 @@ namespace EcommerceApp.API.Endpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return Results.BadRequest($"Error processing request: {ex.Message}");
                 }
             })
             .WithName("UpdateProduct")
             .WithSummary("Update an existing product")
             .Produces(204)
             .Produces(400)
-            .Produces(404);
+            .Produces(404)
+            .DisableAntiforgery(); // Required for file uploads
 
             // DELETE /api/products/{id}
             group.MapDelete("/{id:int}", async (int id, IProductService productService) =>

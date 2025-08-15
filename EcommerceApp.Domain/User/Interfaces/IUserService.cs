@@ -13,5 +13,6 @@ namespace EcommerceApp.Domain.User.Interfaces
         public Task<IEnumerable<UserResponse>> GetUsersAsync();
         public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles);
         public Task<IEnumerable<UserRoleDto>> GetRoles();
+        public Task<bool> UpdateUser(int id, UpdateUser updateUserRequest);
     }
 }

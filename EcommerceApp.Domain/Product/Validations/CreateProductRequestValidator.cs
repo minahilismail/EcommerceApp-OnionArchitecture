@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EcommerceApp.Domain.Product.Validations
 {
-    internal class CreateProductRequestValidator
+    public class CreateProductRequestValidator
     {
     }
 }
