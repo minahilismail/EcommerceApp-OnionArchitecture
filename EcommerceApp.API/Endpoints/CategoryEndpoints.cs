@@ -26,22 +26,22 @@ namespace EcommerceApp.API.Endpoints
             {
                 var createdCategory = await categoryService.CreateAsync(createCategoryDto);
                 return Results.Created($"/api/categories/{createdCategory.Id}", createdCategory);
-            }).WithSummary("Create category");
+            }).WithSummary("Create category").RequireAuthorization("AdminOnly");
             group.MapDelete(("/{id:int}"), async (int id, ICategoryService categoryService) =>
             {
                 var deleted = await categoryService.DeleteAsync(id);
                 return deleted ? Results.NoContent() : Results.NotFound();
-            }).WithSummary("Delete Category");
+            }).WithSummary("Delete Category").RequireAuthorization("AdminOnly");
             group.MapPut(("/{id:int}"), async (int id, UpdateCategory updateCategoryDto, ICategoryService categoryService) =>
             {
                 var updated = await categoryService.UpdateAsync(id, updateCategoryDto);
                 return updated ? Results.NoContent() : Results.NotFound();
-            }).WithSummary("Update Category");
+            }).WithSummary("Update Category").RequireAuthorization("AdminOnly");
             group.MapPut("/{id:int}/status", async (int id, int statusId, ICategoryService categoryService) =>
             {
                 var updated = await categoryService.UpdateStatusAsync(id, statusId);
                 return updated ? Results.NoContent() : Results.NotFound();
-            }).WithSummary("Update Category Status");
+            }).WithSummary("Update Category Status").RequireAuthorization("AdminOnly");
             group.MapGet("/status/{statusId:int}", async (int statusId, ICategoryService categoryService) =>
             {
                 var categories = await categoryService.GetByStatusIdAsync(statusId);

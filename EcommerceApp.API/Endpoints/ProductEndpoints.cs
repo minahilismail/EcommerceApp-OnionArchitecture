@@ -131,7 +131,7 @@ namespace EcommerceApp.API.Endpoints
             .WithSummary("Create a new product")
             .Produces<ProductResponse>(201)
             .Produces(400)
-            .DisableAntiforgery();
+            .DisableAntiforgery().RequireAuthorization("AdminOnly");
 
             // PUT /api/products/{id} (with form data support for images)
             group.MapPut("/{id:int}", async (int id, HttpRequest request, IProductService productService) =>
@@ -195,7 +195,7 @@ namespace EcommerceApp.API.Endpoints
             .Produces(204)
             .Produces(400)
             .Produces(404)
-            .DisableAntiforgery(); // Required for file uploads
+            .DisableAntiforgery().RequireAuthorization("AdminOnly"); 
 
             // DELETE /api/products/{id}
             group.MapDelete("/{id:int}", async (int id, IProductService productService) =>
@@ -207,7 +207,7 @@ namespace EcommerceApp.API.Endpoints
                 return success ? Results.NoContent() : Results.NotFound($"Product with ID {id} not found.");
             })
             .WithName("DeleteProduct")
-            .WithSummary("Delete a product")
+            .WithSummary("Delete a product").RequireAuthorization("AdminOnly")
             .Produces(204)
             .Produces(404);
 
@@ -237,7 +237,7 @@ namespace EcommerceApp.API.Endpoints
                 }
             })
             .WithName("UploadProductImage")
-            .WithSummary("Upload product image")
+            .WithSummary("Upload product image").RequireAuthorization("AdminOnly")
             .Produces<object>(200)
             .Produces(400)
             .Produces(404)

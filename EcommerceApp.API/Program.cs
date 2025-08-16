@@ -18,8 +18,53 @@ using EcommerceApp.Domain.User.Repository;
 using EcommerceApp.Domain.User.Service;
 using EcommerceApp.Domain.User.Validations;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Token"]!)),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidateLifetime = true,
+        };
+    });
+
+// Add Authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    // Role-based policies
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Administrator"));
+    options.AddPolicy("SellerOnly", policy => policy.RequireRole("Seller"));
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+    
+    // Combined role policies
+    options.AddPolicy("AdminOrSeller", policy => 
+        policy.RequireRole("Administrator", "Seller"));
+    options.AddPolicy("AllUsers", policy => 
+        policy.RequireRole("Administrator", "Seller", "User"));
+    
+    // Custom claim-based policies
+    options.AddPolicy("IsAdmin", policy => 
+        policy.RequireClaim("isAdmin", "1"));
+    options.AddPolicy("IsSeller", policy => 
+        policy.RequireClaim("isSeller", "1"));
+    options.AddPolicy("IsUser", policy => 
+        policy.RequireClaim("isUser", "1"));
+    
+    // Require authentication for any endpoint
+    options.AddPolicy("RequireAuth", policy => 
+        policy.RequireAuthenticatedUser());
+});
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -49,8 +94,12 @@ builder.Services.AddScoped<IValidator<UpdateProduct>, UpdateProductRequestValida
 builder.Services.AddScoped<IValidator<CreateProduct>, CreateProductRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateUser>, UpdateUserRequestValidator>();
 builder.Services.AddScoped<UpdateUserRequestValidator>();
+
 var app = builder.Build();
 app.UseCors("AllowSpecificOrigin");
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -64,6 +113,7 @@ var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
+
 CategoryEndpoints.MapCategoryEndpoints(app);
 ProductEndpoints.MapProductEndpoints(app);
 UserEndpoints.MapUserEndpoints(app);

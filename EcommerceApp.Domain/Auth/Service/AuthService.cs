@@ -61,8 +61,6 @@ namespace EcommerceApp.Domain.Auth.Service
                 return null;
             }
             
-          
-            
             var passwordHasher = new PasswordHasher<UserModel>();
             var result = passwordHasher.VerifyHashedPassword(user, user.Password, request.Password);
             if (result == PasswordVerificationResult.Failed)

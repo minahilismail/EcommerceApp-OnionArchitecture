@@ -23,7 +23,7 @@ namespace EcommerceApp.API.Endpoints
             {
                 var users = await userService.GetUsersAsync();
                 return Results.Ok(users);
-            }).WithSummary("Get all users");
+            }).WithSummary("Get all users").RequireAuthorization("AdminOnly");
             group.MapPut("/{id:int}", async (IUserService userService, int id, UpdateUser updateUserRequest) =>
             {
                 var result = await userService.UpdateUser(id, updateUserRequest);
@@ -34,13 +34,13 @@ namespace EcommerceApp.API.Endpoints
                 }
                 
                 return Results.Ok();
-            }).WithSummary("Update user details");
+            }).WithSummary("Update user details").RequireAuthorization("AdminOnly");
             group.MapPut("/update-role", async (IUserService userService, UpdateUserRoles updateUserRoles) =>
             {
                 var result = await userService.UpdateUserRole(updateUserRoles);
                 
                 return Results.Ok();
-            }).WithSummary("Update user roles");
+            }).WithSummary("Update user roles").RequireAuthorization("AdminOnly");
         }
     }
 }
