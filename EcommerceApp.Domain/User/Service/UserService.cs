@@ -8,6 +8,7 @@ using EcommerceApp.Domain.User.Validations;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,11 +19,13 @@ namespace EcommerceApp.Domain.User.Service
     {
         private readonly IUserRepository _userRepository;
         private readonly UpdateUserRequestValidator _updateUserValidator;
+        private readonly IValidator<UpdateUserRoles> _updateUserRolesValidator;
 
-        public UserService(IUserRepository userRepository, UpdateUserRequestValidator updateUserValidator)
+        public UserService(IUserRepository userRepository, UpdateUserRequestValidator updateUserValidator, IValidator<UpdateUserRoles> updateUserRolesValidator)
         {
             _userRepository = userRepository;
             _updateUserValidator = updateUserValidator;
+            _updateUserRolesValidator = updateUserRolesValidator;
         }
 
         public async Task<IEnumerable<UserRoleDto>> GetRoles()
@@ -49,13 +52,14 @@ namespace EcommerceApp.Domain.User.Service
             return await _userRepository.UpdateUser(id, updateUserRequest);
         }
 
-        public Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles)
+        public async Task<bool> UpdateUserRole(UpdateUserRoles updateUserRoles)
         {
-            if (updateUserRoles == null || updateUserRoles.Id <= 0 || updateUserRoles.RoleIds == null || !updateUserRoles.RoleIds.Any())
-            {
-                throw new ArgumentException("Invalid user role update request.");
+            var valid = await _updateUserRolesValidator.ValidateAsync(updateUserRoles);
+            if (!valid.IsValid) {
+                var errors = valid.Errors.Select(e=>e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
             }
-            return _userRepository.UpdateUserRole(updateUserRoles);
+            return await _userRepository.UpdateUserRole(updateUserRoles);
         }
     }
 }

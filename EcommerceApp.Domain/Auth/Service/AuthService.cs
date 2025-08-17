@@ -2,7 +2,9 @@
 using EcommerceApp.Domain.Auth.DTOs.Response;
 using EcommerceApp.Domain.Auth.Interfaces;
 using EcommerceApp.Domain.Auth.Mappings;
+using EcommerceApp.Domain.Auth.Validations;
 using EcommerceApp.Model.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -16,15 +18,26 @@ namespace EcommerceApp.Domain.Auth.Service
     {
         private readonly IAuthRepository _authRepository;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<SignupRequest> _signUpUserValidator;
+        private readonly IValidator<LoginRequest> _loginUserValidator;
 
-        public AuthService(IAuthRepository authRepository, IConfiguration configuration)
+        public AuthService(IAuthRepository authRepository, IConfiguration configuration, IValidator<SignupRequest> signUpUserValidator, IValidator<LoginRequest> loginUserValidator)
         {
+            _signUpUserValidator = signUpUserValidator;
             _authRepository = authRepository;
             _configuration = configuration;
+            _loginUserValidator = loginUserValidator;
         }
 
         public async Task<SignupResponse?> SignUpAsync(SignupRequest request)
         {
+            // Validate the request using FluentValidation
+            var validationResult = await _signUpUserValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
+            }
             // Check if user already exists
             var userExists = await _authRepository.UserExistsAsync(request.Email, request.Username);
             if (userExists)
@@ -52,6 +65,13 @@ namespace EcommerceApp.Domain.Auth.Service
 
         public async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
+            // Validate the request using FluentValidation
+            var validationResult = await _loginUserValidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+                throw new ArgumentException(string.Join(", ", errors));
+            }
             Console.WriteLine($"Login attempt for: {request.Email}");
             
             var user = await _authRepository.GetUserByEmailAsync(request.Email);

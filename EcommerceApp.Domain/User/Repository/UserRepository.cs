@@ -209,22 +209,11 @@ namespace EcommerceApp.Domain.User.Repository
 
         public async Task<bool> RolesExistAsync(int[] roleIds)
         {
-            // Validate role IDs if provided
-            if (roleIds != null && roleIds.Length > 0)
-            {
-                const string validateRolesSql = @"
-                        SELECT COUNT(*) FROM Roles WHERE Id IN @RoleIds";
-
-                using var connection = new SqlConnection(_connectionString);
-                await connection.OpenAsync();
-
-                //checking if user provided role ids actually exist in the database
-                var count = await connection.ExecuteScalarAsync<int>(validateRolesSql, new { RoleIds = roleIds });
-
-                return count == roleIds.Length;
-            }
-
-            return true;
+            // Check if all provided role IDs exist in the database
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = "SELECT COUNT(1) FROM Roles WHERE Id IN @RoleIds";
+            var count = await connection.QuerySingleAsync<int>(sql, new { RoleIds = roleIds });
+            return count == roleIds.Length; // All roles must exist
         }
     }
     

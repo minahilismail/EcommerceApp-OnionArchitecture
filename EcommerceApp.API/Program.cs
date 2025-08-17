@@ -1,7 +1,9 @@
 using EcommerceApp.API.Endpoints;
+using EcommerceApp.Domain.Auth.DTOs.Request;
 using EcommerceApp.Domain.Auth.Interfaces;
 using EcommerceApp.Domain.Auth.Repository;
 using EcommerceApp.Domain.Auth.Service;
+using EcommerceApp.Domain.Auth.Validations;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Domain.Category.Repository;
@@ -93,7 +95,10 @@ builder.Services.AddScoped<IValidator<UpdateCategory>, UpdateCategoryRequestVali
 builder.Services.AddScoped<IValidator<UpdateProduct>, UpdateProductRequestValidator>();
 builder.Services.AddScoped<IValidator<CreateProduct>, CreateProductRequestValidator>();
 builder.Services.AddScoped<IValidator<UpdateUser>, UpdateUserRequestValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserRoles>, UpdateUserRolesValidator>();
 builder.Services.AddScoped<UpdateUserRequestValidator>();
+builder.Services.AddScoped<IValidator<SignupRequest>, SignUpUserRequestValidator>();
+builder.Services.AddScoped<IValidator<LoginRequest>, LoginUserRequestValidator>();
 
 var app = builder.Build();
 app.UseCors("AllowSpecificOrigin");

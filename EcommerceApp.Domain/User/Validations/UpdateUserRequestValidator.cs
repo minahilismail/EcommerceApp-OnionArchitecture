@@ -58,8 +58,10 @@ namespace EcommerceApp.Domain.User.Validations
                 .MustAsync(async (roleIds, cancellation) =>
                 {
                     // Validate that all role IDs exist
-                    if (roleIds == null || !roleIds.Any())
+                    if (roleIds == null)
                         return true; // No roles to validate
+                    if (!roleIds.Any())
+                        return false;
                     return await _userRepository.RolesExistAsync(roleIds);
                 }).WithMessage("One or more roles do not exist.");
         }
