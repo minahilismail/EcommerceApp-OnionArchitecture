@@ -52,7 +52,7 @@ namespace EcommerceApp.Domain.Category.Service
             var id = await _categoryRepository.CreateAsync(category);
             category.Id = id;
 
-            return CategoryExtension.ToDto(category);
+            return CategoryExtension.ToCreateDto(category);
         }
 
 
@@ -101,9 +101,10 @@ namespace EcommerceApp.Domain.Category.Service
             var existingCategory = await _categoryRepository.GetByIdAsync(id);
             if (existingCategory == null)
                 return false;
+
             
             existingCategory.UpdateFromDto(updateDto);
-            return await _categoryRepository.UpdateAsync(existingCategory);
+            return await _categoryRepository.UpdateAsync(existingCategory.ToModel());
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -120,5 +121,7 @@ namespace EcommerceApp.Domain.Category.Service
         {
             return (await _categoryRepository.GetStatuses()).Select(CategoryExtension.ToDto);
         }
+
+        
     }
 }

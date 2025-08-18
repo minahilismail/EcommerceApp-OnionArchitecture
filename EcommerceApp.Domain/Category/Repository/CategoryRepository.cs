@@ -4,10 +4,12 @@ using EcommerceApp.Core.Interfaces;
 using EcommerceApp.Core.Repositories;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Model.Entities;
+using EcommerceApp.Model.Entities.Category;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,19 +23,19 @@ namespace EcommerceApp.Domain.Category.Repository
         {
         }
 
-        public async Task<int> CreateAsync(CategoryModel category)
+        public async Task<int> CreateAsync(CreateUpdateCategoryModel category)
         {
             // Set audit fields for creation
             SetAuditFieldsForCreate(category);
 
             using var connection = new SqlConnection(_connectionString);
 
-            const string sql = @"
-                INSERT INTO Categories (Name, Code, Description, Level, ParentCategoryId, StatusId, CreatedDate, UpdatedDate, CreatedOn, CreatedBy)
-                VALUES (@Name, @Code, @Description, @Level, @ParentCategoryId, @StatusId, @CreatedDate, @UpdatedDate, @CreatedOn, @CreatedBy);
-                SELECT CAST(SCOPE_IDENTITY() as int);";
+            //const string sql = @"
+            //    INSERT INTO Categories (Name, Code, Description, Level, ParentCategoryId, StatusId, CreatedDate, UpdatedDate, CreatedOn, CreatedBy)
+            //    VALUES (@Name, @Code, @Description, @Level, @ParentCategoryId, @StatusId, @CreatedDate, @UpdatedDate, @CreatedOn, @CreatedBy);
+            //    SELECT CAST(SCOPE_IDENTITY() as int);";
 
-            return await connection.QuerySingleAsync<int>(sql, category);
+            return await connection.QuerySingleAsync<int>("CreateUpdateCategory", category,commandType:CommandType.StoredProcedure);
         }
 
         public async Task<IEnumerable<CategoryModel>> GetAllAsync()
@@ -185,27 +187,27 @@ namespace EcommerceApp.Domain.Category.Repository
             return count > 0;
         }
 
-        public async Task<bool> UpdateAsync(CategoryModel category)
+        public async Task<bool> UpdateAsync(CreateUpdateCategoryModel category)
         {
             // Set audit fields for update
             SetAuditFieldsForUpdate(category);
 
             using var connection = new SqlConnection(_connectionString);
 
-            const string sql = @"
-                UPDATE Categories 
-                SET Name = @Name,
-                    Code = @Code,
-                    Description = @Description,
-                    Level = @Level,
-                    ParentCategoryId = @ParentCategoryId,
-                    StatusId = @StatusId,
-                    UpdatedDate = @UpdatedDate,
-                    UpdatedOn = @UpdatedOn,
-                    UpdatedBy = @UpdatedBy
-                WHERE Id = @Id";
+            //const string sql = @"
+            //    UPDATE Categories 
+            //    SET Name = @Name,
+            //        Code = @Code,
+            //        Description = @Description,
+            //        Level = @Level,
+            //        ParentCategoryId = @ParentCategoryId,
+            //        StatusId = @StatusId,
+            //        UpdatedDate = @UpdatedDate,
+            //        UpdatedOn = @UpdatedOn,
+            //        UpdatedBy = @UpdatedBy
+            //    WHERE Id = @Id";
 
-            var rowsAffected = await connection.ExecuteAsync(sql, category);
+            var rowsAffected = await connection.ExecuteAsync("CreateUpdateCategory", category,commandType: CommandType.StoredProcedure);
             return rowsAffected > 0;
         }
 
@@ -226,7 +228,6 @@ namespace EcommerceApp.Domain.Category.Repository
             const string sql = @"
                 UPDATE Categories 
                 SET StatusId = @StatusId,
-                    UpdatedDate = @UpdatedDate,
                     UpdatedOn = @UpdatedOn,
                     UpdatedBy = @UpdatedBy
                 WHERE Id = @Id";
@@ -235,7 +236,6 @@ namespace EcommerceApp.Domain.Category.Repository
             {
                 Id = id,
                 StatusId = statusId,
-                UpdatedDate = DateTime.UtcNow,
                 UpdatedOn = _auditService.GetCurrentDateTime(),
                 UpdatedBy = _auditService.GetCurrentUserId()
             });

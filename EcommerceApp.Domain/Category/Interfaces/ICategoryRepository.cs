@@ -3,6 +3,7 @@ using EcommerceApp.Core.DTOs;
 using EcommerceApp.Domain.Category.DTOs.Request;
 using EcommerceApp.Domain.Category.DTOs.Response;
 using EcommerceApp.Model.Entities;
+using EcommerceApp.Model.Entities.Category;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +21,8 @@ namespace EcommerceApp.Domain.Category.Interfaces
         Task<PagedResult<CategoryModel>> GetPagedAsync(PaginationParameters parameters, int? statusId = null);
 
         Task<IEnumerable<StatusModel>> GetStatuses();
-        Task<int> CreateAsync(CategoryModel category);
-        Task<bool> UpdateAsync(CategoryModel category);
+        Task<int> CreateAsync(CreateUpdateCategoryModel category);
+        Task<bool> UpdateAsync(CreateUpdateCategoryModel category);
         Task<bool> DeleteAsync(int id);
         Task<bool> UpdateCategoryStatusAsync(int id, int statusId);
 

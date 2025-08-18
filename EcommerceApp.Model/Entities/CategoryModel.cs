@@ -10,8 +10,6 @@ namespace EcommerceApp.Model.Entities
         public string Code { get; set; }
         public string Description { get; set; }
         public int Level { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime UpdatedDate { get; set; }
         // Parent-Child relationship properties
         public int? ParentCategoryId { get; set; }
         public int? StatusId { get; set; } = 1;
