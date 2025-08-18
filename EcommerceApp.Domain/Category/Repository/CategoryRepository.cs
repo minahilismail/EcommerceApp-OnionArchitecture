@@ -1,7 +1,7 @@
 ﻿using Dapper;
 using EcommerceApp.Core.DTOs;
-using EcommerceApp.Domain.Category.DTOs.Request;
-using EcommerceApp.Domain.Category.DTOs.Response;
+using EcommerceApp.Core.Interfaces;
+using EcommerceApp.Core.Repositories;
 using EcommerceApp.Domain.Category.Interfaces;
 using EcommerceApp.Model.Entities;
 using Microsoft.Data.SqlClient;
@@ -14,22 +14,23 @@ using System.Threading.Tasks;
 
 namespace EcommerceApp.Domain.Category.Repository
 {
-    public class CategoryRepository : ICategoryRepository
+    public class CategoryRepository : BaseRepository, ICategoryRepository
     {
-        private readonly string _connectionString;
-
-        public CategoryRepository(IConfiguration configuration)
+        public CategoryRepository(IConfiguration configuration, IAuditService auditService) 
+            : base(configuration, auditService)
         {
-            _connectionString = configuration.GetConnectionString("DefaultSQLConnection")!;
         }
 
         public async Task<int> CreateAsync(CategoryModel category)
         {
+            // Set audit fields for creation
+            SetAuditFieldsForCreate(category);
+
             using var connection = new SqlConnection(_connectionString);
 
             const string sql = @"
-                INSERT INTO Categories (Name, Code, Description, Level, ParentCategoryId, StatusId, CreatedDate, UpdatedDate)
-                VALUES (@Name, @Code, @Description, @Level, @ParentCategoryId, @StatusId, @CreatedDate, @UpdatedDate);
+                INSERT INTO Categories (Name, Code, Description, Level, ParentCategoryId, StatusId, CreatedDate, UpdatedDate, CreatedOn, CreatedBy)
+                VALUES (@Name, @Code, @Description, @Level, @ParentCategoryId, @StatusId, @CreatedDate, @UpdatedDate, @CreatedOn, @CreatedBy);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             return await connection.QuerySingleAsync<int>(sql, category);
@@ -186,13 +187,22 @@ namespace EcommerceApp.Domain.Category.Repository
 
         public async Task<bool> UpdateAsync(CategoryModel category)
         {
+            // Set audit fields for update
+            SetAuditFieldsForUpdate(category);
+
             using var connection = new SqlConnection(_connectionString);
 
             const string sql = @"
                 UPDATE Categories 
-                SET Name = @Name, Code = @Code, Description = @Description, 
-                    ParentCategoryId = @ParentCategoryId, StatusId = @StatusId, 
-                    UpdatedDate = @UpdatedDate, UpdatedOn = @UpdatedOn, UpdatedBy = @UpdatedBy
+                SET Name = @Name,
+                    Code = @Code,
+                    Description = @Description,
+                    Level = @Level,
+                    ParentCategoryId = @ParentCategoryId,
+                    StatusId = @StatusId,
+                    UpdatedDate = @UpdatedDate,
+                    UpdatedOn = @UpdatedOn,
+                    UpdatedBy = @UpdatedBy
                 WHERE Id = @Id";
 
             var rowsAffected = await connection.ExecuteAsync(sql, category);
@@ -215,7 +225,10 @@ namespace EcommerceApp.Domain.Category.Repository
 
             const string sql = @"
                 UPDATE Categories 
-                SET StatusId = @StatusId, UpdatedDate = @UpdatedDate, UpdatedOn = @UpdatedOn
+                SET StatusId = @StatusId,
+                    UpdatedDate = @UpdatedDate,
+                    UpdatedOn = @UpdatedOn,
+                    UpdatedBy = @UpdatedBy
                 WHERE Id = @Id";
 
             var rowsAffected = await connection.ExecuteAsync(sql, new
@@ -223,8 +236,10 @@ namespace EcommerceApp.Domain.Category.Repository
                 Id = id,
                 StatusId = statusId,
                 UpdatedDate = DateTime.UtcNow,
-                UpdatedOn = DateTime.UtcNow
+                UpdatedOn = _auditService.GetCurrentDateTime(),
+                UpdatedBy = _auditService.GetCurrentUserId()
             });
+
             return rowsAffected > 0;
         }
 

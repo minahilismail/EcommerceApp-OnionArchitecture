@@ -1,4 +1,6 @@
 using EcommerceApp.API.Endpoints;
+using EcommerceApp.Core.Interfaces;
+using EcommerceApp.Core.Services;
 using EcommerceApp.Domain.Auth.DTOs.Request;
 using EcommerceApp.Domain.Auth.Interfaces;
 using EcommerceApp.Domain.Auth.Repository;
@@ -99,6 +101,10 @@ builder.Services.AddScoped<IValidator<UpdateUserRoles>, UpdateUserRolesValidator
 builder.Services.AddScoped<UpdateUserRequestValidator>();
 builder.Services.AddScoped<IValidator<SignupRequest>, SignUpUserRequestValidator>();
 builder.Services.AddScoped<IValidator<LoginRequest>, LoginUserRequestValidator>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
 
 var app = builder.Build();
 app.UseCors("AllowSpecificOrigin");

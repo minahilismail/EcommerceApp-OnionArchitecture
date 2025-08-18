@@ -1,25 +1,79 @@
 ﻿using Dapper;
 using EcommerceApp.Core.DTOs;
+using EcommerceApp.Core.Interfaces;
+using EcommerceApp.Core.Repositories;
 using EcommerceApp.Domain.Product.DTOs.Request;
 using EcommerceApp.Domain.Product.Interfaces;
 using EcommerceApp.Model.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EcommerceApp.Domain.Product.Repository
 {
-    public class ProductRepository : IProductRepository
+    public class ProductRepository : BaseRepository, IProductRepository
     {
-        private readonly string _connectionString;
-
-        public ProductRepository(IConfiguration configuration)
+        public ProductRepository(IConfiguration configuration, IAuditService auditService) 
+            : base(configuration, auditService)
         {
-            _connectionString = configuration.GetConnectionString("DefaultSQLConnection")!;
+        }
+
+        public async Task<int> CreateAsync(ProductModel product)
+        {
+            // Set audit fields for creation
+            SetAuditFieldsForCreate(product);
+
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                INSERT INTO Products (Title, Price, Description, Image, CategoryId, CreatedOn, CreatedBy)
+                VALUES (@Title, @Price, @Description, @Image, @CategoryId, @CreatedOn, @CreatedBy);
+                SELECT CAST(SCOPE_IDENTITY() as int);";
+
+            return await connection.QuerySingleAsync<int>(sql, product);
+        }
+
+        public async Task<bool> UpdateAsync(ProductModel product)
+        {
+            // Set audit fields for update
+            SetAuditFieldsForUpdate(product);
+
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                UPDATE Products 
+                SET Title = @Title,
+                    Price = @Price,
+                    Description = @Description,
+                    Image = @Image,
+                    CategoryId = @CategoryId,
+                    UpdatedOn = @UpdatedOn,
+                    UpdatedBy = @UpdatedBy
+                WHERE Id = @Id";
+
+            var rowsAffected = await connection.ExecuteAsync(sql, product);
+            return rowsAffected > 0;
+        }
+
+        public async Task<bool> UpdateImageAsync(int id, string imageUrl)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            const string sql = @"
+                UPDATE Products 
+                SET Image = @Image,
+                    UpdatedOn = @UpdatedOn,
+                    UpdatedBy = @UpdatedBy
+                WHERE Id = @Id";
+
+            var rowsAffected = await connection.ExecuteAsync(sql, new
+            {
+                Id = id,
+                Image = imageUrl,
+                UpdatedOn = _auditService.GetCurrentDateTime(),
+                UpdatedBy = _auditService.GetCurrentUserId()
+            });
+
+            return rowsAffected > 0;
         }
 
         public async Task<IEnumerable<ProductModel>> GetAllAsync()
@@ -148,33 +202,6 @@ namespace EcommerceApp.Domain.Product.Repository
             return count > 0;
         }
 
-        public async Task<int> CreateAsync(ProductModel product)
-        {
-            using var connection = new SqlConnection(_connectionString);
-
-            const string sql = @"
-                INSERT INTO Products (Title, Price, Description, Image, CategoryId, CreatedOn, CreatedBy, UpdatedOn, UpdatedBy)
-                VALUES (@Title, @Price, @Description, @Image, @CategoryId, @CreatedOn, @CreatedBy, @UpdatedOn, @UpdatedBy);
-                SELECT CAST(SCOPE_IDENTITY() as int);";
-
-            return await connection.QuerySingleAsync<int>(sql, product);
-        }
-
-        public async Task<bool> UpdateAsync(ProductModel product)
-        {
-            using var connection = new SqlConnection(_connectionString);
-
-            const string sql = @"
-                UPDATE Products 
-                SET Title = @Title, Price = @Price, Description = @Description, 
-                    Image = @Image, CategoryId = @CategoryId, 
-                    UpdatedOn = @UpdatedOn, UpdatedBy = @UpdatedBy
-                WHERE Id = @Id";
-
-            var rowsAffected = await connection.ExecuteAsync(sql, product);
-            return rowsAffected > 0;
-        }
-
         public async Task<bool> DeleteAsync(int id)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -182,24 +209,6 @@ namespace EcommerceApp.Domain.Product.Repository
             const string sql = "DELETE FROM Products WHERE Id = @Id";
 
             var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id });
-            return rowsAffected > 0;
-        }
-
-        public async Task<bool> UpdateImageAsync(int id, string imageUrl)
-        {
-            using var connection = new SqlConnection(_connectionString);
-
-            const string sql = @"
-                UPDATE Products 
-                SET Image = @ImageUrl, UpdatedOn = @UpdatedOn
-                WHERE Id = @Id";
-
-            var rowsAffected = await connection.ExecuteAsync(sql, new
-            {
-                Id = id,
-                ImageUrl = imageUrl,
-                UpdatedOn = DateTime.UtcNow
-            });
             return rowsAffected > 0;
         }
 

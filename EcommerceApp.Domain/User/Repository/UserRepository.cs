@@ -1,28 +1,92 @@
 ﻿using Dapper;
+using EcommerceApp.Core.Interfaces;
+using EcommerceApp.Core.Repositories;
 using EcommerceApp.Domain.User.DTOs.Request;
-using EcommerceApp.Domain.User.DTOs.Response;
 using EcommerceApp.Domain.User.Interfaces;
 using EcommerceApp.Model.Entities;
-using Microsoft.AspNet.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EcommerceApp.Domain.User.Repository
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : BaseRepository, IUserRepository
     {
-        private readonly string _connectionString;
-
-        public UserRepository(IConfiguration configuration)
+        public UserRepository(IConfiguration configuration, IAuditService auditService) 
+            : base(configuration, auditService)
         {
-            _connectionString = configuration.GetConnectionString("DefaultSQLConnection")!;
         }
+
+        public async Task<bool> UpdateUser(int id, UpdateUser user)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                // Update user basic information with audit fields
+                const string updateUserSql = @"
+                    UPDATE [Users] 
+                    SET Name = @Name, 
+                        Username = @Username, 
+                        Email = @Email, 
+                        IsActive = @IsActive,
+                        UpdatedOn = @UpdatedOn,
+                        UpdatedBy = @UpdatedBy
+                    WHERE Id = @Id";
+
+                var rowsAffected = await connection.ExecuteAsync(updateUserSql, new
+                {
+                    Id = id,
+                    Name = user.Name,
+                    Username = user.Username,
+                    Email = user.Email,
+                    IsActive = user.IsActive,
+                    UpdatedOn = _auditService.GetCurrentDateTime(),
+                    UpdatedBy = _auditService.GetCurrentUserId()
+                }, transaction);
+
+                if (rowsAffected == 0)
+                {
+                    return false;
+                }
+
+                // Update roles if provided
+                if (user.RoleIds != null)
+                {
+                    // Remove existing roles
+                    const string deleteRolesSql = @"
+                        DELETE FROM UserRole WHERE UserId = @UserId";
+
+                    await connection.ExecuteAsync(deleteRolesSql, new { UserId = id }, transaction);
+
+                    // Add new roles
+                    if (user.RoleIds.Length > 0)
+                    {
+                        const string insertRolesSql = @"
+                            INSERT INTO UserRole (UserId, RoleId) 
+                            VALUES (@UserId, @RoleId)";
+
+                        var userRoleData = user.RoleIds.Select(roleId => new
+                        {
+                            UserId = id,
+                            RoleId = roleId
+                        });
+
+                        await connection.ExecuteAsync(insertRolesSql, userRoleData, transaction);
+                    }
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<RoleModel>> GetRoles()
         {
             using var connection = new SqlConnection(_connectionString);
@@ -114,75 +178,6 @@ namespace EcommerceApp.Domain.User.Repository
             return userDictionary.Values;
         }
 
-        public async Task<bool> UpdateUser(int id, UpdateUser user)
-        {
-            using var connection = new SqlConnection(_connectionString);
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
-
-            try
-            {
-                // Update user basic information
-                const string updateUserSql = @"
-                    UPDATE [Users] 
-                    SET Name = @Name, 
-                        Username = @Username, 
-                        Email = @Email, 
-                        IsActive = @IsActive,
-                        UpdatedOn = @UpdatedOn
-                    WHERE Id = @Id";
-
-                var rowsAffected = await connection.ExecuteAsync(updateUserSql, new
-                {
-                    Id = id,
-                    Name = user.Name,
-                    Username = user.Username,
-                    Email = user.Email,
-                    IsActive = user.IsActive,
-                    UpdatedOn = DateTime.UtcNow
-                }, transaction);
-
-                if (rowsAffected == 0)
-                {
-                    return false;
-                }
-
-                // Update roles if provided
-                if (user.RoleIds != null)
-                {
-                    // Remove existing roles
-                    const string deleteRolesSql = @"
-                        DELETE FROM UserRole WHERE UserId = @UserId";
-
-                    await connection.ExecuteAsync(deleteRolesSql, new { UserId = id }, transaction);
-
-                    // Add new roles
-                    if (user.RoleIds.Length > 0)
-                    {
-                        const string insertRolesSql = @"
-                            INSERT INTO UserRole (UserId, RoleId) 
-                            VALUES (@UserId, @RoleId)";
-
-                        var userRoleData = user.RoleIds.Select(roleId => new
-                        {
-                            UserId = id,
-                            RoleId = roleId
-                        });
-
-                        await connection.ExecuteAsync(insertRolesSql, userRoleData, transaction);
-                    }
-                }
-
-                transaction.Commit();
-                return true;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
-
         public async Task<bool> UserExistsById(int id)
         {
             using var connection = new SqlConnection(_connectionString);
@@ -209,12 +204,10 @@ namespace EcommerceApp.Domain.User.Repository
 
         public async Task<bool> RolesExistAsync(int[] roleIds)
         {
-            // Check if all provided role IDs exist in the database
             using var connection = new SqlConnection(_connectionString);
             const string sql = "SELECT COUNT(1) FROM Roles WHERE Id IN @RoleIds";
             var count = await connection.QuerySingleAsync<int>(sql, new { RoleIds = roleIds });
-            return count == roleIds.Length; // All roles must exist
+            return count == roleIds.Length;
         }
     }
-    
 }
