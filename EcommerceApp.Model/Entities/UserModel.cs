@@ -25,6 +25,8 @@ namespace EcommerceApp.Model.Entities
         public string Password { get; set; }
         public bool IsActive { get; set; } = true;
 
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         //public string? RefreshToken { get; set; }
         //public DateTime RefreshTokenExpiryTime { get; set; }

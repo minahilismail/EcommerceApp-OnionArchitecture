@@ -77,7 +77,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
-        builder => builder.WithOrigins("http://localhost:4200") // Specify your Angular app's origin
+        builder => builder.WithOrigins("http://localhost:4200") 
                            .AllowAnyHeader()
                            .AllowAnyMethod());
 });

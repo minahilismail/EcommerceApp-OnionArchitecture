@@ -28,6 +28,20 @@ namespace EcommerceApp.Domain.User.Mappings
 
             };
         }
+
+        public static UpdateUser ToUpdateDto(this UserModel user)
+        {
+            return new UpdateUser
+            {
+                Name = user.Name,
+                Username = user.Username,
+                Email = user.Email,
+                IsActive = user.IsActive,
+                RefreshToken = user.RefreshToken,
+                RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
+
+            };
+        }
         public static UserRoleDto ToRoleDto(this RoleModel roles)
         {
             return new UserRoleDto

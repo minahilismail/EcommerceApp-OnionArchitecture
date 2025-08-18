@@ -24,5 +24,7 @@ namespace EcommerceApp.Domain.User.DTOs.Request
         public string Email { get; set; }
         public bool IsActive { get; set; } = true;
         public int[]? RoleIds { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime RefreshTokenExpiryTime { get; set; }
     }
 }

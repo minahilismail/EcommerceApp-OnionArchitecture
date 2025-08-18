@@ -12,5 +12,6 @@ namespace EcommerceApp.Domain.Auth.Interfaces
     {
         public Task<LoginResponse> LoginAsync(LoginRequest loginRequest);
         public Task<SignupResponse> SignUpAsync(SignupRequest signupRequest);
+        public Task<LoginResponse> RefreshTokenAsync(int userId, string refreshToken);
     }
 }

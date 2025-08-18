@@ -31,6 +31,8 @@ namespace EcommerceApp.Domain.User.Repository
                         Username = @Username, 
                         Email = @Email, 
                         IsActive = @IsActive,
+                        RefreshToken = @RefreshToken,
+                        RefreshTokenExpiryTime = @RefreshTokenExpiryTime,
                         UpdatedOn = @UpdatedOn,
                         UpdatedBy = @UpdatedBy
                     WHERE Id = @Id";
@@ -42,6 +44,8 @@ namespace EcommerceApp.Domain.User.Repository
                     Username = user.Username,
                     Email = user.Email,
                     IsActive = user.IsActive,
+                    RefreshToken = user.RefreshToken,
+                    RefreshTokenExpiryTime = user.RefreshTokenExpiryTime,
                     UpdatedOn = _auditService.GetCurrentDateTime(),
                     UpdatedBy = _auditService.GetCurrentUserId()
                 }, transaction);
@@ -177,7 +181,45 @@ namespace EcommerceApp.Domain.User.Repository
 
             return userDictionary.Values;
         }
+        public async Task<UserModel> GetUserById(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            const string sql = @"
+                SELECT u.Id, u.Name, u.Username, u.Email, u.Password, u.IsActive, u.RefreshToken, u.RefreshTokenExpiryTime,
+                       ur.UserId, ur.RoleId,
+                       r.Id, r.Name
+                FROM [Users] u
+                LEFT JOIN UserRole ur ON u.Id = ur.UserId
+                LEFT JOIN Roles r ON ur.RoleId = r.Id
+                WHERE u.Id = @Id";
 
+            var userDictionary = new Dictionary<int, UserModel>();
+
+            await connection.QueryAsync<UserModel, UserRole, RoleModel, UserModel>(
+                sql,
+                (user, userRole, role) =>
+                {
+                    if (!userDictionary.TryGetValue(user.Id, out var existingUser))
+                    {
+                        existingUser = user;
+                        existingUser.UserRoles = new List<UserRole>();
+                        userDictionary.Add(user.Id, existingUser);
+                    }
+
+                    if (userRole != null && role != null)
+                    {
+                        userRole.Role = role;
+                        existingUser.UserRoles.Add(userRole);
+                    }
+
+                    return existingUser;
+                },
+                new { Id = id },
+                splitOn: "UserId,Id");
+
+            return userDictionary.Values.FirstOrDefault();
+            
+        }
         public async Task<bool> UserExistsById(int id)
         {
             using var connection = new SqlConnection(_connectionString);
